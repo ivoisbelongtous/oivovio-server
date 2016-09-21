@@ -34,6 +34,6 @@ func main() {
 		log.Fatal(err)
 	}
 
-	http.HandleFunc("/scrobbles", ScrobbleServer)
+	http.HandleFunc("/scrobbles.json", ScrobbleServer)
 	http.ListenAndServe(":8345", nil)
 }

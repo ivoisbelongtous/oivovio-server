@@ -1,6 +1,7 @@
 package main
 
 import (
+	"bytes"
 	"fmt"
 	"io"
 	"log"
@@ -9,8 +10,9 @@ import (
 )
 
 var apiKey string
+var scrobbleJSON string
 
-func ScrobbleServer(w http.ResponseWriter, req *http.Request) {
+func GetScrobble() string {
 	res, err := http.Get("http://ws.audioscrobbler.com/2.0/?" +
 		"method=user.getRecentTracks&" +
 		"api_key=" + apiKey +
@@ -20,8 +22,15 @@ func ScrobbleServer(w http.ResponseWriter, req *http.Request) {
 	if err != nil {
 		log.Fatal(err)
 	}
-	io.Copy(w, res.Body)
+	var buf bytes.Buffer
+	io.Copy(&buf, res.Body)
 	res.Body.Close()
+	scrobbleJSON = buf.String()
+	return scrobbleJSON
+}
+
+func ScrobbleServer(w http.ResponseWriter, req *http.Request) {
+	io.WriteString(w, GetScrobble())
 }
 
 func main() {

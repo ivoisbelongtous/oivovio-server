@@ -7,10 +7,17 @@ import (
 	"log"
 	"net/http"
 	"os"
+	"time"
 )
 
 var apiKey string
-var scrobbleJSON string
+
+type ScrobbleRequest struct {
+	json        string
+	requestTime time.Time
+}
+
+var scrobble ScrobbleRequest
 
 func GetScrobble() string {
 	res, err := http.Get("http://ws.audioscrobbler.com/2.0/?" +
@@ -25,8 +32,14 @@ func GetScrobble() string {
 	var buf bytes.Buffer
 	io.Copy(&buf, res.Body)
 	res.Body.Close()
-	scrobbleJSON = buf.String()
-	return scrobbleJSON
+
+	scrobble.json = buf.String()
+	resTime := res.Header.Get("Date")
+	scrobble.requestTime, err = time.Parse(time.RFC1123, resTime)
+	if err != nil {
+		log.Fatal(err)
+	}
+	return scrobble.json
 }
 
 func ScrobbleServer(w http.ResponseWriter, req *http.Request) {

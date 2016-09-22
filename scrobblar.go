@@ -20,25 +20,31 @@ type ScrobbleRequest struct {
 var scrobble ScrobbleRequest
 
 func GetScrobble() string {
-	res, err := http.Get("http://ws.audioscrobbler.com/2.0/?" +
-		"method=user.getRecentTracks&" +
-		"api_key=" + apiKey +
-		"&user=Doomboy95" +
-		"&limit=1" +
-		"&format=json")
-	if err != nil {
-		log.Fatal(err)
-	}
-	var buf bytes.Buffer
-	io.Copy(&buf, res.Body)
-	res.Body.Close()
+	// Invalidate cache after 30 seconds.
+	ttl := scrobble.requestTime.Add(time.Duration(30) * time.Second)
+	if scrobble.requestTime.IsZero() || ttl.Before(time.Now()) {
 
-	scrobble.json = buf.String()
-	resTime := res.Header.Get("Date")
-	scrobble.requestTime, err = time.Parse(time.RFC1123, resTime)
-	if err != nil {
-		log.Fatal(err)
+		res, err := http.Get("http://ws.audioscrobbler.com/2.0/?" +
+			"method=user.getRecentTracks&" +
+			"api_key=" + apiKey +
+			"&user=Doomboy95" +
+			"&limit=1" +
+			"&format=json")
+		if err != nil {
+			log.Fatal(err)
+		}
+		var buf bytes.Buffer
+		io.Copy(&buf, res.Body)
+		res.Body.Close()
+
+		scrobble.json = buf.String()
+		resTime := res.Header.Get("Date")
+		scrobble.requestTime, err = time.Parse(time.RFC1123, resTime)
+		if err != nil {
+			log.Fatal(err)
+		}
 	}
+
 	return scrobble.json
 }
 

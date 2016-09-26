@@ -64,7 +64,14 @@ func ScrobbleMonitor(out chan ScrobbleRequest) {
 }
 
 func main() {
-	r, err := os.Open("apikey.txt")
+	var apiPath string
+	if len(os.Args) >= 2 {
+		apiPath = os.Args[1]
+	} else {
+		// Default to looking in cwd.
+		apiPath = "apikey.txt"
+	}
+	r, err := os.Open(apiPath)
 	if err != nil {
 		log.Fatal(err)
 	}

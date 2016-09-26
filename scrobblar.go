@@ -87,5 +87,10 @@ func main() {
 				}
 			}
 		})
-	http.ListenAndServe(":8345", nil)
+	certRoot := "/etc/letsencrypt/live/oivov.io/"
+	http.ListenAndServeTLS(
+		":8345",
+		certRoot+"cert.pem",
+		certRoot+"privkey.pem",
+		nil)
 }
